@@ -1,120 +1,34 @@
-// Retrieve todo from the local storage or initialise an empty array 
+// Define the AngularJS module and controller
+angular.module('todoApp', [])
+.controller('TodoController', function($scope) {
+    $scope.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-let todo = JSON.parse(localStorage.getItem("todo")) || [] ; 
-
-const todoInput = document.getElementById("todoInput"); 
-console.log(todoInput)
-
-const todoList = document.getElementById("todoList"); 
-
-const todoCount = document.getElementById("todoCount"); 
-
-const addButton = document.querySelector(".btn"); 
-
-const deleteButton = document.getElementById("deleteButton"); 
-
-// Initialize our project 
-
-document.addEventListener("DOMContentLoaded", function(){
-    addButton.addEventListener("click", addTask); 
-    todoInput.addEventListener("keydown", function(event){
-        if(event.key === "Enter"){
-            event.preventDefault(); 
-            addTask(); 
+    $scope.addTask = function() {
+        if ($scope.newTask) {
+            $scope.tasks.push({ text: $scope.newTask, disabled: false });
+            $scope.newTask = '';
+            $scope.saveTasks();
         }
-    }); 
-    deleteButton.addEventListener("click", deleteAllTasks); 
-    displayTasks(); 
-}); 
+    };
 
-function addTask(){
-    const newTask = todoInput.value.trim();
-    if(newTask !== ""){
-        todo.push({
-            text: newTask, disabled: false, 
-        }); 
-        saveToLocalStorage(); 
-        todoInput.value = "";
-        displayTasks(); 
-    } 
-}
+    $scope.deleteAllTasks = function() {
+        $scope.tasks = [];
+        $scope.saveTasks();
+    };
 
-function deleteAllTasks(){
-    console.log("test");
-}
+    $scope.remainingCount = function() {
+        return $scope.tasks.filter(task => !task.disabled).length;
+    };
 
-function displayTasks(){
-    todoList.innerHTML = "";
-    todo.forEach((item, index) => {
-        const p = document.createElement("p");
-
-        p.innerHTML = `
-            <div class="todo-container">
-                <input type="checkbox" class="todo-checkbox" id="input-${index}" ${
-            item.disabled ? "checked" : ""
-            }>
-                <p id="todo-${index}" class="${
-            item.disabled ? "disabled" : ""
-            }" onclick="editTask(${index})">${item.text}</p>
-            </div>
-            `;
-            
-            p.querySelector(".todo-checkbox").addEventListener("change", () =>
-                toggleTask(index)
-              );
-              
-        todoList.appendChild(p);
-    });
-    remainingCount.textContent = todo.filter(item => ! item.disabled).length;
-    todoCount.textContent = todo.length; 
-}
-
-function toggleTask(index){
-    todo[index].disabled = !todo[index].disabled;
-    saveToLocalStorage(); 
-    displayTasks(); 
-}
-
-function deleteAllTasks(){ 
-    todo = []; 
-    saveToLocalStorage();
-    displayTasks(); 
-}
-
-function editTask(index){
-    const todoItem = document.getElementById(`todo-${index}`); 
-    const existingText = todo[index].text;
-    const inputElement = document.createElement("input"); 
-
-    inputElement.value = existingText;  
-    todoItem.replaceWith(inputElement); 
-    inputElement.focus(); 
-
-    inputElement.addEventListener("keydown", function(event){
-        if(event.key === "Enter") {
-            saveChanges(); 
+    $scope.editTask = function(index) {
+        const updatedTask = prompt("Edit Task:", $scope.tasks[index].text);
+        if (updatedTask !== null) {
+            $scope.tasks[index].text = updatedTask;
+            $scope.saveTasks();
         }
-    }); 
+    };
 
-    function saveChanges() {
-        const updatedText = inputElement.value.trim(); 
-        if(updatedText) {
-            todo[index].text = updatedText; 
-            saveToLocalStorage(); 
-            displayTasks(); 
-        }
-    }
-
-    inputElement.addEventListener("blur", function () {
-        const updatedText = inputElement.value.trim(); 
-        if(updatedText){
-            todo[index].text = updatedText; 
-            saveToLocalStorage(); 
-            displayTasks(); 
-        }
-    });
-}
-
-function saveToLocalStorage(){
-    localStorage.setItem("todo", JSON.stringify(todo)); 
-}
+    $scope.saveTasks = function() {
+        localStorage.setItem('tasks', JSON.stringify($scope.tasks));
+    };
+});
